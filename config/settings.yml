@@ -1,0 +1,9 @@
+plugins:
+  check_credentials_enabled:
+    default: false
+    client: true
+    type: bool
+  check_credentials_api_key:
+    default: ""
+    client: false
+    type: text
