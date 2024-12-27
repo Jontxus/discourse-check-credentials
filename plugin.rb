@@ -6,8 +6,6 @@
 
 enabled_site_setting :check_credentials_enabled
 
-register_asset "stylesheets/common/discourse-check-credentials.scss"
-
 after_initialize do
   load File.expand_path('../lib/discourse-check-credentials/engine.rb', __FILE__)
 end
