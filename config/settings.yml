@@ -3,7 +3,13 @@ plugins:
     default: false
     client: true
     type: bool
+
   check_credentials_api_key:
+    default: ""
+    client: false
+    type: text
+
+  check_credentials_allowed_ips:
     default: ""
     client: false
     type: text

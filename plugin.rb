@@ -2,7 +2,7 @@
 # about: Plugin para validar credenciales de usuario mediante un endpoint personalizado
 # version: 0.1
 # authors: "Jon"
-# url: https://github.com/tunombre/discourse-check-credentials
+# url: https://github.com/Jontxus/discourse-check-credentials
 
 enabled_site_setting :check_credentials_enabled
 

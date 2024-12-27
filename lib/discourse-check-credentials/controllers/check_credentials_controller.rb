@@ -1,55 +1,80 @@
 # lib/discourse-check-credentials/controllers/check_credentials_controller.rb
 module ::DiscourseCheckCredentials
     class CheckCredentialsController < ::ApplicationController
-      #
-      # OJO: Lo normal es que Discourse exija autenticación para cualquier endpoint POST,
-      # y también protege con CSRF. Si queremos exponer un endpoint "libre",
-      # hay que desactivar ciertas protecciones, pero con MUCHO CUIDADO.
-      #
-      skip_before_action :check_xhr
-      skip_before_action :verify_authenticity_token
+        skip_before_action :check_xhr
+        skip_before_action :verify_authenticity_token
   
-      # Opcional: una forma sencilla de requerir una "API key" propia
-      before_action :ensure_valid_api_key
-  
-      def index
-        return render(json: { error: 'Plugin deshabilitado' }, status: 403) unless SiteSetting.check_credentials_enabled
-  
-        username = params[:username]
-        password = params[:password]
-  
-        if username.blank? || password.blank?
-          return render(json: { valid: false, error: "Missing username or password" }, status: 400)
+        before_action :ensure_valid_api_key
+        
+        before_action :limit_rate
+        before_action :ensure_allowed_ip
+
+        def index
+            return render(json: { error: 'Plugin deshabilitado' }, status: 403) unless SiteSetting.check_credentials_enabled
+    
+            username = params[:username]
+            password = params[:password]
+    
+            if username.blank? || password.blank?
+                Rails.logger.warn("[CheckCredentials] IP=#{request.ip} intentó sin username o password")
+                return render(json: { valid: false, error: "Missing username or password" }, status: 400)
+            end
+    
+            user = User.find_by_username_or_email(username)
+    
+            if user && user.valid_password?(password)
+
+                Rails.logger.info("[CheckCredentials] IP=#{request.ip} username=#{username} -> OK")
+
+                render json: {
+                    valid: true,
+                    user_id: user.id,
+                    username: user.username,
+                    email: user.email,
+                }
+            else
+                Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Credenciales inválidas")
+                render json: { valid: false }, status: 401
+            end
         end
-  
-        user = User.find_by_username_or_email(username)
-  
-        if user && user.valid_password?(password)
-          # Opcional: devuelves algo más de info. ¡Cuidado con no exponer datos sensibles!
-          render json: {
-            valid: true,
-            user_id: user.id,
-            username: user.username,
-            email: user.email,
-          }
-        else
-          render json: { valid: false }, status: 401
+    
+        private
+    
+        def ensure_valid_api_key
+
+            token = request.headers["X-Plugin-Token"]
+            expected = SiteSetting.check_credentials_api_key.presence
+    
+            if expected.blank? || token != expected
+                Rails.logger.warn("[CheckCredentials] IP=#{request.ip} token inválido='#{token}'")
+                render(json: { error: "Invalid API key" }, status: 403)
+            end
         end
-      end
-  
-      private
-  
-      def ensure_valid_api_key
-        # Aquí implementas tu propia lógica de seguridad para el endpoint.
-        # Por ejemplo, exigir un header X-Plugin-Token
-        token = request.headers["X-Plugin-Token"]
-        expected = SiteSetting.check_credentials_api_key.presence
-  
-        # Si no configuraste nada o no coincide, error 403
-        if expected.blank? || token != expected
-          render(json: { error: "Invalid API key" }, status: 403)
+
+        def limit_rate
+            RateLimiter.new(
+                nil,
+                "check-credentials-ip-#{request.ip}",
+                SiteSetting.check_credentials_max_rate,
+                1.minute
+            ).performed!
+        rescue RateLimiter::LimitExceeded
+            Rails.logger.warn("[CheckCredentials] IP=#{request.ip} superó el límite de peticiones")
+            render(json: { error: "Too many requests" }, status: 429)
         end
-      end
+
+        def ensure_allowed_ip
+            allowed_ips = SiteSetting.check_credentials_allowed_ips.to_s
+                                    .split(",")
+                                    .map { |ip| ip.strip }
+                                    .reject(&:blank?)
+            remote_ip = request.ip  
+            unless allowed_ips.include?(remote_ip)
+                Rails.logger.warn("[CheckCredentials] IP=#{remote_ip} no está en la lista permitida -> 403")
+                render(json: { error: "IP not allowed" }, status: 403) and return
+            end
+        end
+
     end
-  end
+end
   

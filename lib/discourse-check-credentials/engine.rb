@@ -8,7 +8,6 @@ module ::DiscourseCheckCredentials
   end
   
   Discourse::Application.routes.append do
-    # Montamos el engine en una URL
     mount ::DiscourseCheckCredentials::Engine, at: "/check_credentials"
   end
   
