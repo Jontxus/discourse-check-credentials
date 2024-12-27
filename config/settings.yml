@@ -13,3 +13,8 @@ plugins:
     default: ""
     client: false
     type: text
+
+  check_credentials_max_rate:
+    default: 5
+    client: false
+    type: integer
