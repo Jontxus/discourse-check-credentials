@@ -8,5 +8,8 @@
 
 after_initialize do
 
-  load File.expand_path('../lib/discourse_check_credentials/engine.rb', __FILE__)
+  Dir.glob(File.expand_path('../lib/discourse_check_credentials/**/*.rb', __FILE__)).each do |file|
+    require file
+  end
+  
 end
