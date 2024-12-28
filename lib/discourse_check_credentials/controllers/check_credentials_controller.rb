@@ -24,21 +24,15 @@ module ::DiscourseCheckCredentials
         
             user = User.find_by_username_or_email(username)
         
-            if user
-                authenticator = UserAuthenticator.new(user, {})
-                if authenticator.authenticate(password)
-                  Rails.logger.info("[CheckCredentials] IP=#{request.ip} username=#{username} -> OK")
-                  return render json: {
-                    valid: true,
-                    user_id: user.id,
-                    username: user.username,
-                    email: user.email,
-                  }
-                else
-                    Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Credenciales inválidas")
-                    render json: { valid: false }, status: 401
-                end
-
+            if user && user.valid_password?(password)
+                Rails.logger.info("[CheckCredentials] IP=#{request.ip} username=#{username} -> OK")
+            
+                render json: {
+                  valid: true,
+                  user_id: user.id,
+                  username: user.username,
+                  email: user.email,
+                }
             else
                 Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Credenciales inválidas")
                 render json: { valid: false }, status: 401
