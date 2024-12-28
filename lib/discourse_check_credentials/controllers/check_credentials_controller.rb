@@ -2,9 +2,9 @@
 module ::DiscourseCheckCredentials
     class CheckCredentialsController < ::ApplicationController
 
-        skip_before_action :redirect_to_login_if_required, raise: false
-        skip_before_action :ensure_logged_in, raise: false
-        skip_before_action :enforce_login_if_required, raise: false
+        # skip_before_action :redirect_to_login_if_required, raise: false
+        # skip_before_action :ensure_logged_in, raise: false
+        # skip_before_action :enforce_login_if_required, raise: false
 
         skip_before_action :check_xhr
         skip_before_action :verify_authenticity_token
