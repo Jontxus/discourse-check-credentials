@@ -1,7 +1,11 @@
 # lib/discourse_check_credentials/controllers/check_credentials_controller.rb
-require_relative '../utils'
 module ::DiscourseCheckCredentials
     class CheckCredentialsController < ::ApplicationController
+
+        # skip_before_action :redirect_to_login_if_required, raise: false
+        # skip_before_action :ensure_logged_in, raise: false
+        # skip_before_action :enforce_login_if_required, raise: false
+
         skip_before_action :check_xhr
         skip_before_action :verify_authenticity_token
   
@@ -12,18 +16,16 @@ module ::DiscourseCheckCredentials
         def index
             username = params[:username]
             password = params[:password]
-            
+        
             if username.blank? || password.blank?
-              Rails.logger.warn("[CheckCredentials] IP=#{request.ip} intentó sin username o password")
-              return render(json: { valid: false, error: "Missing username or password" }, status: 400)
+                Rails.logger.warn("[CheckCredentials] IP=#{request.ip} intentó sin username o password")
+                return render(json: { valid: false, error: "Missing username or password" }, status: 400)
             end
-      
+        
             user = User.find_by_username_or_email(username)
+        
             if user
-              user_password = UserPassword.find_by(user_id: user.id)
-              if user_password
-                stored_hash = "$pbkdf2-sha256$i=600000,l=32$#{Base64.encode64(user_password.password_salt).strip}$#{Base64.encode64(user_password.password_hash).strip}"
-                if Utils.verify_password(stored_hash, user_password.password_salt, password)
+                if user.confirm_password?(password)
                   Rails.logger.info("[CheckCredentials] IP=#{request.ip} username=#{username} -> OK")
                   render json: {
                     valid: true,
@@ -32,17 +34,13 @@ module ::DiscourseCheckCredentials
                     email: user.email,
                   }
                 else
-                  Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Contraseña inválida")
+                  Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Credenciales inválidas")
                   render json: { valid: false }, status: 401
                 end
               else
-                Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> UserPassword no encontrado")
+                Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Usuario no encontrado")
                 render json: { valid: false }, status: 401
               end
-            else
-              Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Usuario no encontrado")
-              render json: { valid: false }, status: 401
-            end
         end
     
         private
