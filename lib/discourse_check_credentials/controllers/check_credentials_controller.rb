@@ -24,8 +24,8 @@ module ::DiscourseCheckCredentials
         
             user = User.find_by_username_or_email(username)
         
-            if user
-                if user.authenticated_with_password?(password)
+            if user && user.password_hash.present?
+                if BCrypt::Password.new(user.password_hash) == password
                   Rails.logger.info("[CheckCredentials] IP=#{request.ip} username=#{username} -> OK")
                   render json: {
                     valid: true,
@@ -38,7 +38,7 @@ module ::DiscourseCheckCredentials
                   render json: { valid: false }, status: 401
                 end
               else
-                Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Usuario no encontrado")
+                Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Usuario no encontrado o sin contraseña")
                 render json: { valid: false }, status: 401
               end
         end
