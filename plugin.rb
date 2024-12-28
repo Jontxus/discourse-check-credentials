@@ -7,5 +7,5 @@
 enabled_site_setting :check_credentials_enabled
 
 after_initialize do
-  load File.expand_path('../lib/discourse-check-credentials/engine.rb', __FILE__)
+  load File.expand_path('../lib/discourse_check_credentials/engine.rb', __FILE__)
 end

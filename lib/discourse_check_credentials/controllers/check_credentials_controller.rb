@@ -1,4 +1,4 @@
-# lib/discourse-check-credentials/controllers/check_credentials_controller.rb
+# lib/discourse_check_credentials/controllers/check_credentials_controller.rb
 module ::DiscourseCheckCredentials
     class CheckCredentialsController < ::ApplicationController
         skip_before_action :check_xhr
