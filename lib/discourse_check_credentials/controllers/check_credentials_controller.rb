@@ -10,7 +10,6 @@ module ::DiscourseCheckCredentials
         before_action :ensure_allowed_ip
 
         def index
-            return render(json: { error: 'Plugin deshabilitado' }, status: 403) unless SiteSetting.check_credentials_enabled
     
             username = params[:username]
             password = params[:password]
