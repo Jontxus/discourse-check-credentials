@@ -6,10 +6,11 @@
 
 # plugin.rb
 
-after_initialize do
+require_relative 'lib/discourse_check_credentials/utils'
 
+after_initialize do
   Dir.glob(File.expand_path('../lib/discourse_check_credentials/**/*.rb', __FILE__)).each do |file|
-    require file
+    require file unless file.include?('utils.rb')
   end
-  
+
 end
