@@ -34,6 +34,11 @@ module ::DiscourseCheckCredentials
                     username: user.username,
                     email: user.email,
                   }
+                else
+                    Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Credenciales inválidas")
+                    render json: { valid: false }, status: 401
+                end
+
             else
                 Rails.logger.warn("[CheckCredentials] IP=#{request.ip} username=#{username} -> Credenciales inválidas")
                 render json: { valid: false }, status: 401
