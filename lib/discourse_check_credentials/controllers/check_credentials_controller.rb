@@ -25,8 +25,8 @@ module ::DiscourseCheckCredentials
             user = User.find_by_username_or_email(username)
         
             if user
-                Rails.logger.debug("Session: #{session.inspect}")
-                authenticator = UserAuthenticator.new(user, session, require_password: true)
+                
+                authenticator = UserAuthenticator.new(user, {}, require_password: true)
                 if authenticator.authenticate(password)
                     Rails.logger.info("[CheckCredentials] IP=#{request.ip} username=#{username} -> OK")
                     render json: {
