@@ -1,5 +1,4 @@
 # lib/discourse_check_credentials/controllers/check_credentials_controller.rb
-require_relative '../utils'
 module ::DiscourseCheckCredentials
     class CheckCredentialsController < ::ApplicationController
 
