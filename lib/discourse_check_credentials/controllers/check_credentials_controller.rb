@@ -14,18 +14,17 @@ module ::DiscourseCheckCredentials
         before_action :ensure_allowed_ip
 
         def index
-    
             username = params[:username]
             password = params[:password]
-    
+        
             if username.blank? || password.blank?
                 Rails.logger.warn("[CheckCredentials] IP=#{request.ip} intentó sin username o password")
                 return render(json: { valid: false, error: "Missing username or password" }, status: 400)
             end
-    
+        
             user = User.find_by_username_or_email(username)
-    
-            if user && UserAuthenticator.new(user, {}).authenticate(password)
+        
+            if user && user.password_correct?(password)
                 Rails.logger.info("[CheckCredentials] IP=#{request.ip} username=#{username} -> OK")
         
                 render json: {
