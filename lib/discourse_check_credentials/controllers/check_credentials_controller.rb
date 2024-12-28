@@ -24,7 +24,7 @@ module ::DiscourseCheckCredentials
         
             user = User.find_by_username_or_email(username)
         
-            if user && user.valid_password?(password)
+            if user && BCrypt::Password.new(user.password_hash) == password
                 Rails.logger.info("[CheckCredentials] IP=#{request.ip} username=#{username} -> OK")
             
                 render json: {
